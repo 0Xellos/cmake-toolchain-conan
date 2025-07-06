@@ -1,26 +1,26 @@
 # cmake-conan
 
-![Build Status](https://github.com/conan-io/cmake-conan/actions/workflows/cmake_conan.yml/badge.svg?branch=develop2)
+![Build Status](https://github.com/0Xellos/cmake-toolchain-conan/actions/workflows/cmake_conan.yml/badge.svg?branch=develop2)
 
 CMake dependency provider for the Conan C and C++ package manager.
 
+## Differences from the official `cmake-conan`
 
-| ⚠️ Important: Conan 2 is the recommended production version for ``cmake-conan``.  | 
-|------------------------------------------|
-| The ``cmake-conan`` integration in this ``develop2`` branch for Conan 2 using CMake dependency providers, even if not released as 1.0 yet, is more stable, production-ready and recommended than the legacy ``cmake-conan`` for Conan 1. Please update to Conan 2 and the new ``cmake-conan`` integration in this ``develop2`` branch. |
+This dependency provider is intended to be used only with the [custom plugin](https://github.com/0Xellos/conan-cmake-toolchain-clion-plugin) that supports `CMakeToolchain` generator with `cmake_layout`. This allows it to make assumptions about location of relevant generated files and, on the other hand, puts looser requirements on Conan CLI and outputs, which makes it somewhat backwards-compatible with Conan 1.
 
+That said, please move on to Conan 2.
 
-## Quickstart with Conan 2.0
+## Quickstart with Conan
 
 Prerequisites:
 * CMake 3.24
-* Conan 2.0.5
+* Conan 1.62
 * A CMake-based project that contains a `conanfile.txt` or `conanfile.py` to list the required dependencies.
 
 First, clone this repository in the `develop2` branch.
 
 ```bash
-git clone https://github.com/conan-io/cmake-conan.git -b develop2
+git clone https://github.com/0Xellos/cmake-toolchain-conan.git -b develop2
 ```
 
 ### Example project
