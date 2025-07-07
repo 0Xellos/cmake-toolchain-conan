@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-set(CONAN_MINIMUM_VERSION 2.0.5)
+set(CONAN_MINIMUM_VERSION 1.62.0)
 
 # Create a new policy scope and set the minimum required cmake version so the
 # features behind a policy setting like if(... IN_LIST ...) behaves as expected
@@ -475,7 +475,7 @@ function(conan_install)
         set(ENV{PATH} "$ENV{PATH}:${PATH_TO_CMAKE_BIN}")
     endif()
 
-    execute_process(COMMAND ${CONAN_COMMAND} install ${CMAKE_SOURCE_DIR} ${conan_args} ${ARGN} --format=json
+    execute_process(COMMAND ${CONAN_COMMAND} install ${CMAKE_SOURCE_DIR} ${conan_args} ${ARGN}
                     RESULT_VARIABLE return_code
                     OUTPUT_VARIABLE conan_stdout
                     ERROR_VARIABLE conan_stderr
@@ -493,13 +493,17 @@ function(conan_install)
     # the files are generated in a folder that depends on the layout used, if
     # one is specified, but we don't know a priori where this is.
     # TODO: this can be made more robust if Conan can provide this in the json output
-    string(JSON conan_generators_folder GET "${conan_stdout}" graph nodes 0 generators_folder)
-    cmake_path(CONVERT ${conan_generators_folder} TO_CMAKE_PATH_LIST conan_generators_folder)
-
+    set(_build_type ${conan_args})
+    list(FILTER _build_type INCLUDE REGEX "build_type=.*")
+    string(SUBSTRING _build_type 11 -1 _build_type)
+    if(NOT ${_build_type})
+        set(_build_type ${CMAKE_BUILD_TYPE})
+    endif()
+    set(conan_generators_folder ${conan_output_folder}/build/${_build_type}/generators)
     message(STATUS "CMake-Conan: CONAN_GENERATORS_FOLDER=${conan_generators_folder}")
     set_property(GLOBAL PROPERTY CONAN_GENERATORS_FOLDER "${conan_generators_folder}")
     # reconfigure on conanfile changes
-    string(JSON conanfile GET "${conan_stdout}" graph nodes 0 label)
+    set(conanfile ${CMAKE_SOURCE_DIR})
     message(STATUS "CMake-Conan: CONANFILE=${CMAKE_SOURCE_DIR}/${conanfile}")
     set_property(DIRECTORY ${CMAKE_SOURCE_DIR} APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/${conanfile}")
     # success
