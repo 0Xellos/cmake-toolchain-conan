@@ -495,9 +495,10 @@ function(conan_install)
     # TODO: this can be made more robust if Conan can provide this in the json output
     set(_build_type ${conan_args})
     list(FILTER _build_type INCLUDE REGEX "build_type=.*")
-    string(SUBSTRING _build_type 11 -1 _build_type)
-    if(NOT ${_build_type})
+    if(_build_type STREQUAL "")
         set(_build_type ${CMAKE_BUILD_TYPE})
+    else()
+        string(SUBSTRING _build_type 11 -1 _build_type)
     endif()
     set(conan_generators_folder ${conan_output_folder}/build/${_build_type}/generators)
     message(STATUS "CMake-Conan: CONAN_GENERATORS_FOLDER=${conan_generators_folder}")
@@ -506,6 +507,9 @@ function(conan_install)
     set(conanfile ${CMAKE_SOURCE_DIR})
     message(STATUS "CMake-Conan: CONANFILE=${CMAKE_SOURCE_DIR}/${conanfile}")
     set_property(DIRECTORY ${CMAKE_SOURCE_DIR} APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/${conanfile}")
+
+    include(${conan_generators_folder}/conan_toolchain.cmake)
+
     # success
     set_property(GLOBAL PROPERTY CONAN_INSTALL_SUCCESS TRUE)
 
