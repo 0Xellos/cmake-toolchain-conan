@@ -465,7 +465,7 @@ function(conan_install)
     set(conan_output_folder ${CMAKE_BINARY_DIR}/conan)
     # Invoke "conan install" with the provided arguments
     set(conan_args ${conan_args} -of=${conan_output_folder})
-    message(STATUS "CMake-Conan: conan install ${CMAKE_SOURCE_DIR} ${conan_args} ${ARGN}")
+    message(STATUS "CMake-Conan: conan install ${conanfile} ${conan_args} ${ARGN}")
 
 
     # In case there was not a valid cmake executable in the PATH, we inject the
@@ -475,7 +475,7 @@ function(conan_install)
         set(ENV{PATH} "$ENV{PATH}:${PATH_TO_CMAKE_BIN}")
     endif()
 
-    execute_process(COMMAND ${CONAN_COMMAND} install ${CMAKE_SOURCE_DIR} ${conan_args} ${ARGN}
+    execute_process(COMMAND ${CONAN_COMMAND} install "${conanfile}" ${conan_args} ${ARGN}
                     RESULT_VARIABLE return_code
                     OUTPUT_VARIABLE conan_stdout
                     ERROR_VARIABLE conan_stderr
@@ -504,9 +504,8 @@ function(conan_install)
     message(STATUS "CMake-Conan: CONAN_GENERATORS_FOLDER=${conan_generators_folder}")
     set_property(GLOBAL PROPERTY CONAN_GENERATORS_FOLDER "${conan_generators_folder}")
     # reconfigure on conanfile changes
-    set(conanfile ${CMAKE_SOURCE_DIR})
-    message(STATUS "CMake-Conan: CONANFILE=${CMAKE_SOURCE_DIR}/${conanfile}")
-    set_property(DIRECTORY ${CMAKE_SOURCE_DIR} APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/${conanfile}")
+    message(STATUS "CMake-Conan: CONANFILE=${conanfile}")
+    set_property(DIRECTORY ${CMAKE_SOURCE_DIR} APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${conanfile}")
 
     include(${conan_generators_folder}/conan_toolchain.cmake)
 
@@ -586,20 +585,26 @@ macro(conan_provide_dependency method package_name)
         endif()
         construct_profile_argument(_host_profile_flags CONAN_HOST_PROFILE)
         construct_profile_argument(_build_profile_flags CONAN_BUILD_PROFILE)
+
         if(EXISTS "${CMAKE_SOURCE_DIR}/conanfile.py")
+            set(conanfile "conanfile.py" CACHE STRING "")
             file(READ "${CMAKE_SOURCE_DIR}/conanfile.py" outfile)
             if(NOT "${outfile}" MATCHES ".*CMakeDeps.*")
                 message(WARNING "Cmake-conan: CMakeDeps generator was not defined in the conanfile")
             endif()
             set(generator "")
         elseif (EXISTS "${CMAKE_SOURCE_DIR}/conanfile.txt")
+            set(conanfile "conanfile.txt" CACHE STRING "")
             file(READ "${CMAKE_SOURCE_DIR}/conanfile.txt" outfile)
             if(NOT "${outfile}" MATCHES ".*CMakeDeps.*")
                 message(WARNING "Cmake-conan: CMakeDeps generator was not defined in the conanfile. "
                         "Please define the generator as it will be mandatory in the future")
             endif()
             set(generator "-g;CMakeDeps")
+        else()
+            set(conanfile "" CACHE STRING "")
         endif()
+        set(conanfile "${CMAKE_SOURCE_DIR}/${conanfile}" CACHE STRING "" FORCE)
         get_property(_multiconfig_generator GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
         if(NOT _multiconfig_generator)
             message(STATUS "CMake-Conan: Installing single configuration ${CMAKE_BUILD_TYPE}")
